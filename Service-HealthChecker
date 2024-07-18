@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SERVICE_NAME="your_service_name"
+HEALTH_CHECK_URL="http://localhost:your_port/health"
+CHECK_HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+
+# Check the status of the service and the health check
+if [ "$CHECK_HTTP_STATUS" -ne 200 ] || ! systemctl is-active --quiet $SERVICE_NAME; then
+    echo "$(date): Health check failed (HTTP status: $CHECK_HTTP_STATUS) or $SERVICE_NAME is not running. Attempting to restart $SERVICE_NAME."
+
+    systemctl restart $SERVICE_NAME
+
+    if systemctl is-active --quiet $SERVICE_NAME; then
+        echo "$(date): $SERVICE_NAME has been successfully restarted."
+    else
+        echo "$(date): Failed to restart $SERVICE_NAME."
+    fi
+else
+    echo "$(date): Health check passed (HTTP status: $HTTP_STATUS) and $SERVICE_NAME is running."
+fi
